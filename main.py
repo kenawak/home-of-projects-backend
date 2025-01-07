@@ -40,8 +40,11 @@ async def handle_data(data):
 # Function to set the webhook
 async def set_webhook():
     try:
-        await application.bot.set_webhook(WEBHOOK_URL)
-        logging.info(f"Webhook set to {WEBHOOK_URL}")
+        webhook_result = await application.bot.set_webhook(WEBHOOK_URL)
+        if webhook_result:
+            logging.info(f"Webhook set successfully to {WEBHOOK_URL}")
+        else:
+            logging.error("Failed to set webhook.")
     except Exception as e:
         logging.error(f"Error setting webhook: {e}")
 
@@ -61,14 +64,18 @@ app = FastAPI()
 @app.get("/")
 async def read_root():
     return {"message": "Hello, Render!"}
-
-# FastAPI endpoint for Telegram webhook
+# 
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
-    update_dict = await request.json()
-    update = Update.de_json(update_dict, application.bot)
-    await application.process_update(update)
-    return {"status": "success"}
+    try:
+        update_dict = await request.json()
+        update = Update.de_json(update_dict, application.bot)
+        await application.process_update(update)
+        return {"status": "success"}
+    except Exception as e:
+        logging.error(f"Error processing webhook update: {e}")
+        return {"status": "error", "message": str(e)}
+
 
 # FastAPI endpoint to receive data
 @app.post("/data")
@@ -86,9 +93,8 @@ async def run_fastapi():
 
 # Function to run both FastAPI and Telegram bot concurrently
 async def main():
-    bot_task = asyncio.create_task(initialize_bot())
-    fastapi_task = asyncio.create_task(run_fastapi())
-    await asyncio.gather(bot_task, fastapi_task)
+    await initialize_bot()  # Initialize bot first (set webhook)
+    await run_fastapi()     # Then run FastAPI
 
 if __name__ == "__main__":
     asyncio.run(main())
