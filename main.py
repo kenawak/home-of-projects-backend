@@ -101,9 +101,8 @@ async def run_fastapi():
 
 # Function to run both FastAPI and Telegram bot concurrently
 async def main():
-    bot_task = asyncio.create_task(initialize_bot())
-    fastapi_task = asyncio.create_task(run_fastapi())
-    await asyncio.gather(bot_task, fastapi_task)
+    await initialize_bot()  # Ensure the bot is initialized first
+    await run_fastapi()      # Then run the FastAPI server
 
 if __name__ == "__main__":
     asyncio.run(main())
