@@ -67,9 +67,79 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # Function to handle received data
 async def handle_data(data):
-    context = application.bot
-    channel_id = TELEGRAM_CHANNEL_ID
-    await context.send_message(chat_id=channel_id, text=f"Received data: {data}")
+    """
+    Handle submitted form data and send a formatted message to the Telegram channel.
+    
+    Args:
+        data (dict): The form data submitted from the frontend.
+    """
+    try:
+        # Access the bot and channel ID
+        bot = application.bot
+        channel_id = TELEGRAM_CHANNEL_ID
+
+        # Extract data from the form submission
+        project_name = data.get("projectName", "Unnamed Project")
+        project_description = data.get("projectDescription", "No description provided.")
+        telegram_link = data.get("telegramLink")
+        linkedin_profile = data.get("linkedinProfile")
+        twitter_account = data.get("twitterAccount")
+        github_link = data.get("githubLink")
+        live_link = data.get("liveLink")
+        files = data.get("files", [])
+
+        # Construct the message text with formatting
+        message_text = (
+            f"**Project Name:** {project_name}\n"
+            f"**Description:** {project_description}\n\n"
+            f"🔗 **Links:**\n"
+            f"{'• [Telegram](' + telegram_link + ')' if telegram_link else ''}\n"
+            f"{'• [LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}\n"
+            f"{'• [Twitter](' + twitter_account + ')' if twitter_account else ''}\n"
+            f"{'• [GitHub](' + github_link + ')' if github_link else ''}\n"
+            f"{'• [Live Link](' + live_link + ')' if live_link else ''}\n"
+        )
+
+        # Build Inline Keyboard Buttons for available links
+        buttons = []
+        if telegram_link:
+            buttons.append(InlineKeyboardButton("Telegram", url=telegram_link))
+        if linkedin_profile:
+            buttons.append(InlineKeyboardButton("LinkedIn", url=linkedin_profile))
+        if twitter_account:
+            buttons.append(InlineKeyboardButton("Twitter", url=twitter_account))
+        if github_link:
+            buttons.append(InlineKeyboardButton("GitHub", url=github_link))
+        if live_link:
+            buttons.append(InlineKeyboardButton("Live Project", url=live_link))
+        reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
+
+        # Check if there's an image to send
+        if files and len(files) > 0:
+            # Assume the first file is an image URL
+            image_url = files[0]
+            message = await bot.send_photo(
+                chat_id=channel_id,
+                photo=image_url,
+                caption=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+            )
+        else:
+            # Send the message without an image
+            message = await bot.send_message(
+                chat_id=channel_id,
+                text=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+            )
+
+        logging.info(f"Message sent successfully: {message.message_id}")
+        return {"status": "success", "message_id": message.message_id}
+
+    except Exception as e:
+        logging.error(f"Error sending data to the channel: {e}")
+        return {"status": "error", "message": str(e)}
 
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
