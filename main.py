@@ -17,6 +17,7 @@ TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
+TELEGRAM_CHANNEL_ID = "@testbot00X00"
 WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
@@ -29,6 +30,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Register handlers
 application.add_handler(CommandHandler("start", start))
+
+# Function to handle received data
+async def handle_data(data):
+    context = application.bot
+    channel_id = TELEGRAM_CHANNEL_ID
+    await context.send_message(chat_id=channel_id, text=f"Received data: {data}")
 
 # Function to set the webhook
 async def set_webhook():
@@ -62,9 +69,17 @@ async def telegram_webhook(update: dict):
     await application.process_update(update)
     return {"status": "success"}
 
+# FastAPI endpoint to receive data
+@app.post("/data")
+async def receive_data(request: Request):
+    data = await request.json()
+    await handle_data(data)
+    return {"status": "success", "data": data}
+
 # Function to run FastAPI
 async def run_fastapi():
-    config = uvicorn.Config(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    config = uvicorn.Config(app, host="0.0.0.0", port=port)
     server = uvicorn.Server(config)
     await server.serve()
 
