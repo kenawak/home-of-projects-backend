@@ -37,7 +37,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     frontend_url = "https://home-of-projects-frontend.onrender.com/"
     keyboard = [
-        [InlineKeyboardButton("Visit Frontend 🌐", url=frontend_url)]
+        [InlineKeyboardButton("Visit Frontend 🌐", web_app=frontend_url)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup)
