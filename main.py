@@ -74,12 +74,14 @@ async def set_webhook():
 # Function to initialize the bot
 async def initialize_bot():
     try:
-        await application.initialize()  # Initialize the application
-        await set_webhook()              # Set the webhook
+        await application.initialize()
+        await application.start()
+        await set_webhook()
         logging.info("Bot initialized successfully")
+        # Start polling for updates
+        await application.updater.start_polling()  # {{ edit_1 }}
     except Exception as e:
         logging.error(f"Error initializing bot: {e}")
-        
 # FastAPI root endpoint
 @app.get("/")
 async def read_root():
