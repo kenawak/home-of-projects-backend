@@ -95,7 +95,6 @@ async def run_fastapi():
     server = uvicorn.Server(config)
     await server.serve()
 
-# Function to run both FastAPI and Telegram bot concurrently
 async def main():
     await application.initialize()
     await set_webhook()
