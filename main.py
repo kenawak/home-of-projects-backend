@@ -89,26 +89,20 @@ async def handle_data(data):
         live_link = data.get("liveLink")
         files = data.get("files", [])
 
-        # Construct the message text with formatting
+        # Construct the message text with formatting and emojis
         message_text = (
             f"**Project Name:** {project_name}\n"
             f"**Description:** {project_description}\n\n"
             f"🔗 **Links:**\n"
-            f"{'• [Telegram](' + telegram_link + ')' if telegram_link else ''}\n"
-            f"{'• [LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}\n"
-            f"{'• [Twitter](' + twitter_account + ')' if twitter_account else ''}\n"
-            f"{'• [GitHub](' + github_link + ')' if github_link else ''}\n"
-            f"{'• [Live Link](' + live_link + ')' if live_link else ''}\n"
+            f"{'• [📞 Telegram](' + telegram_link + ')' if telegram_link else ''}\n"
+            f"{'• [💼 LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}\n"
+            f"{'• [🐦 Twitter](' + twitter_account + ')' if twitter_account else ''}\n"
+            f"{'• [💻 GitHub](' + github_link + ')' if github_link else ''}\n"
+            f"{'• [🌐 Live Link](' + live_link + ')' if live_link else ''}\n"
         )
 
-        # Build Inline Keyboard Buttons for available links
+        # Build Inline Keyboard Buttons for GitHub and Live Link
         buttons = []
-        if telegram_link:
-            buttons.append(InlineKeyboardButton("Telegram", url=telegram_link))
-        if linkedin_profile:
-            buttons.append(InlineKeyboardButton("LinkedIn", url=linkedin_profile))
-        if twitter_account:
-            buttons.append(InlineKeyboardButton("Twitter", url=twitter_account))
         if github_link:
             buttons.append(InlineKeyboardButton("GitHub", url=github_link))
         if live_link:
@@ -137,10 +131,6 @@ async def handle_data(data):
 
         logging.info(f"Message sent successfully: {message.message_id}")
         return {"status": "success", "message_id": message.message_id}
-
-    except Exception as e:
-        logging.error(f"Error sending data to the channel: {e}")
-        return {"status": "error", "message": str(e)}
 
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
