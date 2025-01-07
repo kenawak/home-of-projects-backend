@@ -29,10 +29,18 @@ application = ApplicationBuilder().token(TOKEN).build()
 # Initialize FastAPI
 app = FastAPI()
 
-# Define handlers for different Telegram events
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    frontend_url = "https://your-frontend-url.com"  # Replace with your actual frontend URL
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"I'm a bot, please talk to me! Use this URL: {frontend_url}")
+    description = (
+        "Welcome to our bot! 🎉\n\n"
+        "This bot provides useful functionality to connect with our platform.\n"
+        "Click the button below to visit the frontend and explore more!"
+    )
+    frontend_url = "https://home-of-projects-frontend.onrender.com/"
+    keyboard = [
+        [InlineKeyboardButton("Visit Frontend 🌐", url=frontend_url)]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup)
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
