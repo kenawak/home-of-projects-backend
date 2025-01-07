@@ -131,7 +131,9 @@ async def handle_data(data):
 
         logging.info(f"Message sent successfully: {message.message_id}")
         return {"status": "success", "message_id": message.message_id}
-
+    except Exception as e:
+        logging.error(f"Error sending data to the channel: {e}")
+        return {"status": "error", "message": str(e)}
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
