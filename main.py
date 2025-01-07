@@ -3,8 +3,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import Optional
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
@@ -29,19 +28,6 @@ application = ApplicationBuilder().token(TOKEN).build()
 
 # Initialize FastAPI
 app = FastAPI()
-# Add CORS middleware
-origins = [
-    "https://home-of-projects-mini-app.vercel.app",
-    "https://api.telegram.org"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = (
