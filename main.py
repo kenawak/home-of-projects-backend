@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 import logging
 from typing import Optional
 from fastapi import FastAPI, Request
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from fastapi.middleware.cors import CORSMiddleware
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 
@@ -29,15 +30,30 @@ application = ApplicationBuilder().token(TOKEN).build()
 # Initialize FastAPI
 app = FastAPI()
 
+# Add CORS middleware
+origins = [
+    "https://home-of-projects-mini-app.vercel.app",
+    "https://api.telegram.org"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Define handlers for different Telegram events
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = (
         "Welcome to our bot! 🎉\n\n"
         "This bot provides useful functionality to connect with our platform.\n"
         "Click the button below to visit the frontend and explore more!"
     )
-    frontend_url = "https://home-of-projects-frontend.onrender.com/"
+    frontend_url = "https://home-of-projects-mini-app.vercel.app/"
     keyboard = [
-        [InlineKeyboardButton("Visit Frontend 🌐", web_app=frontend_url)]
+        [InlineKeyboardButton("Visit Frontend 🌐", web_app=WebAppInfo(url=frontend_url))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup)
@@ -99,6 +115,7 @@ async def read_root():
 @app.post("/data")
 async def receive_data(request: Request):
     data = await request.json()
+    
     await handle_data(data)
     return {"status": "success", "data": data}
 
