@@ -1,4 +1,4 @@
-fastapi[all]
-uvicorn[all]
-python-telegram-bot[all]
-
+fastapi
+python-telegram-bot==20.6
+python-dotenv
+uvicorn
