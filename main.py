@@ -1,5 +1,6 @@
 import asyncio
 import os
+from dotenv import load_dotenv
 import logging
 from typing import Optional
 from fastapi import FastAPI, Request
@@ -12,6 +13,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
 
+# Load environment variables
+load_dotenv()
 # Replace with your actual Telegram Bot Token
 TOKEN = os.getenv("TOKEN")
 if not TOKEN:
@@ -28,7 +31,8 @@ app = FastAPI()
 
 # Define handlers for different Telegram events
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+    frontend_url = "https://your-frontend-url.com"  # Replace with your actual frontend URL
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"I'm a bot, please talk to me! Use this URL: {frontend_url}")
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
@@ -43,17 +47,19 @@ async def handle_data(data):
     channel_id = TELEGRAM_CHANNEL_ID
     await context.send_message(chat_id=channel_id, text=f"Received data: {data}")
 
-# 
+# FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     try:
         update_dict = await request.json()
+        logging.info(f"Webhook received: {update_dict}")  # Log the raw update
         update = Update.de_json(update_dict, application.bot)
         await application.process_update(update)
         return {"status": "success"}
     except Exception as e:
         logging.error(f"Error processing webhook update: {e}")
         return {"status": "error", "message": str(e)}
+
 # Function to set the webhook
 async def set_webhook():
     try:
@@ -69,17 +75,15 @@ async def set_webhook():
 async def initialize_bot():
     try:
         await application.initialize()
-        await set_webhook()
+        await set_webhook()  # Ensure the webhook is set before starting
         logging.info("Bot initialized successfully")
     except Exception as e:
         logging.error(f"Error initializing bot: {e}")
-
-
+        
 # FastAPI root endpoint
 @app.get("/")
 async def read_root():
     return {"message": "Hello, Render!"}
-
 
 # FastAPI endpoint to receive data
 @app.post("/data")
@@ -90,16 +94,16 @@ async def receive_data(request: Request):
 
 # Function to run FastAPI
 async def run_fastapi():
-    import uvicorn
-    config = uvicorn.Config(app, host="0.0.0.0", port=8001)  # Change port to 8001
+    port = int(os.getenv("PORT", 8000))
+    config = uvicorn.Config(app, host="0.0.0.0", port=port)
     server = uvicorn.Server(config)
     await server.serve()
 
+# Function to run both FastAPI and Telegram bot concurrently
 async def main():
-    await application.initialize()
-    await set_webhook()
+    bot_task = asyncio.create_task(initialize_bot())
     fastapi_task = asyncio.create_task(run_fastapi())
-    await fastapi_task
+    await asyncio.gather(bot_task, fastapi_task)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())
