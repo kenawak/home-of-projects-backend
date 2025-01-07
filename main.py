@@ -41,7 +41,7 @@ app = FastAPI()
 # FastAPI root endpoint
 @app.get("/")
 async def read_root():
-    return {"message": "Hello, World!"}
+    return {"message": "Hello, Render!"}
 
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
