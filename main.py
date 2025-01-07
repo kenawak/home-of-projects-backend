@@ -3,7 +3,8 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import Optional
-from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, HTTPException
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
