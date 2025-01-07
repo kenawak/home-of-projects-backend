@@ -74,8 +74,8 @@ async def set_webhook():
 # Function to initialize the bot
 async def initialize_bot():
     try:
-        await application.initialize()
-        await set_webhook()  # Ensure the webhook is set before starting
+        await application.initialize()  # Initialize the application
+        await set_webhook()              # Set the webhook
         logging.info("Bot initialized successfully")
     except Exception as e:
         logging.error(f"Error initializing bot: {e}")
