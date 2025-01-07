@@ -2,7 +2,6 @@ import asyncio
 import os
 from dotenv import load_dotenv
 import logging
-from typing import Optional
 from fastapi import FastAPI, Request
 from telegram import Update
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
@@ -15,7 +14,6 @@ logging.basicConfig(
 
 # Load environment variables
 load_dotenv()
-# Replace with your actual Telegram Bot Token
 TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
@@ -41,16 +39,15 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-# Function to handle received data
-async def handle_data(data):
-    context = application.bot
-    channel_id = TELEGRAM_CHANNEL_ID
-    await context.send_message(chat_id=channel_id, text=f"Received data: {data}")
-
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     try:
+        # Ensure the application is initialized
+        if not application.bot:
+            logging.warning("Application was not initialized. Initializing now...")
+            await application.initialize()
+        
         update_dict = await request.json()
         logging.info(f"Webhook received: {update_dict}")  # Log the raw update
         update = Update.de_json(update_dict, application.bot)
@@ -75,24 +72,15 @@ async def set_webhook():
 async def initialize_bot():
     try:
         await application.initialize()
-        await application.start()
         await set_webhook()
         logging.info("Bot initialized successfully")
-        # Start polling for updates
-        await application.updater.start_polling()  # {{ edit_1 }}
     except Exception as e:
         logging.error(f"Error initializing bot: {e}")
+
 # FastAPI root endpoint
 @app.get("/")
 async def read_root():
     return {"message": "Hello, Render!"}
-
-# FastAPI endpoint to receive data
-@app.post("/data")
-async def receive_data(request: Request):
-    data = await request.json()
-    await handle_data(data)
-    return {"status": "success", "data": data}
 
 # Function to run FastAPI
 async def run_fastapi():
@@ -103,8 +91,8 @@ async def run_fastapi():
 
 # Function to run both FastAPI and Telegram bot concurrently
 async def main():
-    await initialize_bot()  # Ensure the bot is initialized first
-    await run_fastapi()      # Then run the FastAPI server
+    await initialize_bot()
+    await run_fastapi()
 
 if __name__ == "__main__":
     asyncio.run(main())
