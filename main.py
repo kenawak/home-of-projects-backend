@@ -14,6 +14,9 @@ logging.basicConfig(
 
 # Replace with your actual Telegram Bot Token
 TOKEN = os.getenv("TOKEN")
+if not TOKEN:
+    raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
+
 WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
@@ -21,6 +24,7 @@ application = ApplicationBuilder().token(TOKEN).build()
 
 # Define handlers for different Telegram events
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info(f"Received /start command from {update.effective_chat.id}")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
 
 # Register handlers
@@ -28,12 +32,20 @@ application.add_handler(CommandHandler("start", start))
 
 # Function to set the webhook
 async def set_webhook():
-    await application.bot.set_webhook(WEBHOOK_URL)
+    try:
+        await application.bot.set_webhook(WEBHOOK_URL)
+        logging.info(f"Webhook set to {WEBHOOK_URL}")
+    except Exception as e:
+        logging.error(f"Error setting webhook: {e}")
 
 # Function to initialize the bot
 async def initialize_bot():
-    await application.initialize()
-    await set_webhook()
+    try:
+        await application.initialize()
+        await set_webhook()
+        logging.info("Bot initialized successfully")
+    except Exception as e:
+        logging.error(f"Error initializing bot: {e}")
 
 # Initialize FastAPI
 app = FastAPI()
