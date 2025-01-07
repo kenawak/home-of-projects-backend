@@ -43,11 +43,6 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
     try:
-        # Ensure the application is initialized
-        if not application.bot:
-            logging.warning("Application was not initialized. Initializing now...")
-            await application.initialize()
-        
         update_dict = await request.json()
         logging.info(f"Webhook received: {update_dict}")  # Log the raw update
         update = Update.de_json(update_dict, application.bot)
@@ -91,8 +86,9 @@ async def run_fastapi():
 
 # Function to run both FastAPI and Telegram bot concurrently
 async def main():
-    await initialize_bot()
-    await run_fastapi()
+    bot_task = asyncio.create_task(initialize_bot())
+    fastapi_task = asyncio.create_task(run_fastapi())
+    await asyncio.gather(bot_task, fastapi_task)
 
 if __name__ == "__main__":
     asyncio.run(main())
