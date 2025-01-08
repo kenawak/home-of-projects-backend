@@ -3,12 +3,12 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import Optional
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
-
+from oi import BytesIO
 # Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -49,12 +49,12 @@ app.add_middleware(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = (
         "Welcome to our bot! 🎉\n\n"
-        "This bot provides useful functionality to connect with our platform.\n"
-        "Click the button below to visit the frontend and explore more!"
+        "Its time to connect with the community.\n"
+        "Click the button below to visit the mini app and upload your project!"
     )
     frontend_url = "https://home-of-projects-mini-app.vercel.app/"
     keyboard = [
-        [InlineKeyboardButton("Visit Frontend 🌐", web_app=WebAppInfo(url=frontend_url))]
+        [InlineKeyboardButton("App🌐", web_app=WebAppInfo(url=frontend_url))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup)
@@ -67,12 +67,14 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # Function to handle received data
-async def handle_data(data):
+# Function to handle received data
+async def handle_data(data, files: Optional[list[UploadFile]] = None):
     """
     Handle submitted form data and send a formatted message to the Telegram channel.
     
     Args:
         data (dict): The form data submitted from the frontend.
+        files (list[UploadFile], optional): List of uploaded files.
     """
     try:
         # Access the bot and channel ID
@@ -87,22 +89,27 @@ async def handle_data(data):
         twitter_account = data.get("twitterAccount")
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
-        files = data.get("files", [])
 
-        # Construct the message text with formatting and emojis
+        # Construct the message text with formatting
         message_text = (
             f"**Project Name:** {project_name}\n"
             f"**Description:** {project_description}\n\n"
             f"🔗 **Links:**\n"
-            f"{'• [📞 Telegram](' + telegram_link + ')' if telegram_link else ''}\n"
-            f"{'• [💼 LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}\n"
-            f"{'• [🐦 Twitter](' + twitter_account + ')' if twitter_account else ''}\n"
-            f"{'• [💻 GitHub](' + github_link + ')' if github_link else ''}\n"
-            f"{'• [🌐 Live Link](' + live_link + ')' if live_link else ''}\n"
+            f"{'• [Telegram](' + telegram_link + ')' if telegram_link else ''}\n"
+            f"{'• [LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}\n"
+            f"{'• [Twitter](' + twitter_account + ')' if twitter_account else ''}\n"
+            f"{'• [GitHub](' + github_link + ')' if github_link else ''}\n"
+            f"{'• [Live Link](' + live_link + ')' if live_link else ''}\n"
         )
 
-        # Build Inline Keyboard Buttons for GitHub and Live Link
+        # Build Inline Keyboard Buttons for available links
         buttons = []
+        if telegram_link:
+            buttons.append(InlineKeyboardButton("Telegram", url=telegram_link))
+        if linkedin_profile:
+            buttons.append(InlineKeyboardButton("LinkedIn", url=linkedin_profile))
+        if twitter_account:
+            buttons.append(InlineKeyboardButton("Twitter", url=twitter_account))
         if github_link:
             buttons.append(InlineKeyboardButton("GitHub", url=github_link))
         if live_link:
@@ -111,11 +118,12 @@ async def handle_data(data):
 
         # Check if there's an image to send
         if files and len(files) > 0:
-            # Assume the first file is an image URL
-            image_url = files[0]
+            # Assume the first file is an image
+            image_file = files[0]
+            image_bytes = BytesIO(await image_file.read())
             message = await bot.send_photo(
                 chat_id=channel_id,
-                photo=image_url,
+                photo=image_bytes,
                 caption=message_text,
                 parse_mode="Markdown",
                 reply_markup=reply_markup,
@@ -131,6 +139,7 @@ async def handle_data(data):
 
         logging.info(f"Message sent successfully: {message.message_id}")
         return {"status": "success", "message_id": message.message_id}
+
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
         return {"status": "error", "message": str(e)}
@@ -176,12 +185,12 @@ async def read_root():
 
 # FastAPI endpoint to receive data
 @app.post("/data")
-async def receive_data(request: Request):
+async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
     data = await request.json()
     
-    await handle_data(data)
+    await handle_data(data, files)
     return {"status": "success", "data": data}
-
+    
 # Function to run FastAPI
 async def run_fastapi():
     port = int(os.getenv("PORT", 8000))
