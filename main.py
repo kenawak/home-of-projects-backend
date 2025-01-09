@@ -93,9 +93,9 @@ async def handle_data(data):
         message_text = (
     f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
-            f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
-            f"{'|[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}"
-            f"{'|[Twitter](' + twitter_account + ')' if twitter_account else ''}"
+            f"{'🗨️[Telegram](' +  telegram_link + ')' if telegram_link else ''}"
+            f"{'|🔗[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}"
+            f"{'|🚀[Twitter](' + twitter_account + ')' if twitter_account else ''}"
         )
 
         # Build Inline Keyboard Buttons for available links
