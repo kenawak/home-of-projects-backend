@@ -3,11 +3,12 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import Optional
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(
@@ -67,12 +68,13 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # Function to handle received data
-async def handle_data(data):
+async def handle_data(data, files: Optional[list[UploadFile]] = None):
     """
     Handle submitted form data and send a formatted message to the Telegram channel.
     
     Args:
         data (dict): The form data submitted from the frontend.
+        files (list[UploadFile], optional): List of uploaded files.
     """
     try:
         # Access the bot and channel ID
@@ -87,13 +89,10 @@ async def handle_data(data):
         twitter_account = data.get("twitterAccount")
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
-        files = data.get("files", [])
-
-        # Construct the message text with formatting
 
         # Construct the message text with formatting
         message_text = (
-            f"{'['+ project_name +']('+ github_link +')' if github_link else "https://github.com/"}\n"
+            f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
             f"{'|[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}"
@@ -110,11 +109,12 @@ async def handle_data(data):
 
         # Check if there's an image to send
         if files and len(files) > 0:
-            # Assume the first file is an image URL
-            image_url = files[0]
+            # Assume the first file is an image
+            image_file = files[0]
+            image_bytes = BytesIO(await image_file.read())
             message = await bot.send_photo(
                 chat_id=channel_id,
-                photo=image_url,
+                photo=image_bytes,
                 caption=message_text,
                 parse_mode="Markdown",
                 reply_markup=reply_markup,
@@ -177,10 +177,10 @@ async def read_root():
 
 # FastAPI endpoint to receive data
 @app.post("/data")
-async def receive_data(request: Request):
+async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
     data = await request.json()
     
-    await handle_data(data)
+    await handle_data(data, files)
     return {"status": "success", "data": data}
 
 # Function to run FastAPI
