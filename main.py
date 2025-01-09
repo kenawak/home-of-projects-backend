@@ -32,9 +32,9 @@ app = FastAPI()
 
 # Add CORS middleware
 origins = [
-    "https://home-of-projects-mini-app.vercel.app",
+    "https://home-of-projects-mini-app.vercel.app/project-form",
     "https://api.telegram.org",
-    "http://localhost:3000/"
+    "http://localhost:3000/project-form"
 ]
 
 app.add_middleware(
