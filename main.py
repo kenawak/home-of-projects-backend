@@ -49,12 +49,18 @@ app.add_middleware(
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = (
-        "Ready to connect with your audience🎉\n\n"
-        "Upload your projects and get feedback or comments and so on...🚀.\n"
-        "You can use the mini-app to post about your projects on our channel.\n"
-        "Your data will be sent to the channel: "
-        "[Channel](https://t.me/testbot00X00)"
-    )
+    "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
+    "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
+    "This is not just another tech channel—it's where your projects come alive and thrive! 💡\n\n"
+    "✨ **What’s in it for you?**\n"
+    "- 🗣️ **Feedback that matters**: Get invaluable insights and feedback from our vibrant tech community.\n"
+    "- 🌍 **Global Reach**: Share your projects with a broader audience.\n"
+    "- 🔄 **Connect & Collaborate**: Network with like-minded innovators.\n\n"
+    "💻 Use our mini-app to seamlessly showcase your projects and broadcast them on this platform. No matter if it's a code snippet or a masterpiece—it's your story to share! 📖\n\n"
+    "🎯 Ready to start? Post your projects and see them shine in the spotlight.\n"
+    "[Projects by the community--](https://t.me/testbot00X00) 🌐"
+)
+
     frontend_url = "https://home-of-projects-mini-app.vercel.app/"
     keyboard = [
         [InlineKeyboardButton("Upload Project🌐", web_app=WebAppInfo(url=frontend_url))]
