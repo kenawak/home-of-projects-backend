@@ -50,7 +50,6 @@ app.add_middleware(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_link = f"tg://user?id={user.id}"
-    user_data[user.id] = user_link
     description = (
     "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
     "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
