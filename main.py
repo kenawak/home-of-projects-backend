@@ -205,7 +205,7 @@ async def read_root():
 @app.post("/data")
 async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
     data = await request.json()
-    await handle_data(info, files)
+    await handle_data(data, files)
     return {"status": "success", "data": data}
 
 # Function to run FastAPI
