@@ -50,17 +50,17 @@ app.add_middleware(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = (
         "Ready to connect with your audience🎉\n\n"
-        "Upload your projects and get feedbacks or comments and on on...🚀.\n"
+        "Upload your projects and get feedback or comments and so on...🚀.\n"
         "You can use the mini-app to post about your projects on our channel.\n"
         "Your data will be sent to the channel: "
-        f"{'[Channel](' + @testbot00X00 + ')'}"
+        "[Channel](https://t.me/testbot00X00)"
     )
     frontend_url = "https://home-of-projects-mini-app.vercel.app/"
     keyboard = [
         [InlineKeyboardButton("Upload Project🌐", web_app=WebAppInfo(url=frontend_url))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup, parse_mode="Markdown")
     
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
