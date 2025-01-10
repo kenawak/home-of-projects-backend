@@ -205,7 +205,6 @@ async def read_root():
 @app.post("/data")
 async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
     data = await request.json()
-    info = info.append(data)
     await handle_data(info, files)
     return {"status": "success", "data": data}
 
