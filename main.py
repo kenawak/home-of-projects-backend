@@ -104,7 +104,6 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile}" if linkedin_profile else None
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
-
         # Construct the message text with formatting
         message_text = (
             f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
@@ -128,22 +127,15 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             # Assume the first file is an uploaded image
             image_file = files[0]
             image_bytes = await image_file.read()
-            image_path = f"images/{image_file.filename}"
-            
-            # Save the image to a folder
-            with open(image_path, "wb") as f:
-                f.write(image_bytes)
-            logging.info(f"Image saved to {image_path}")
 
-            # Send the saved image file
-            with open(image_path, "rb") as f:
-                message = await bot.send_photo(
-                    chat_id=channel_id,
-                    photo=f,
-                    caption=message_text,
-                    parse_mode="Markdown",
-                    reply_markup=reply_markup,
-                )
+            # Send the image file directly
+            message = await bot.send_photo(
+                chat_id=channel_id,
+                photo=BytesIO(image_bytes),
+                caption=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+            )
         else:
             logging.info("No image file found in the submission.")
             # Send the message without an image
