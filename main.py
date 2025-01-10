@@ -49,15 +49,15 @@ app.add_middleware(
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = (
-        "Welcome to our bot! 🎉\n\n"
-        "This bot provides useful functionality to connect with our platform.\n"
+        "Ready to connect with your audience🎉\n\n"
+        "Upload your projects and get feedbacks or comments and on on...🚀.\n"
         "You can use the mini-app to post about your projects on our channel.\n"
-        "Your data will be sent to the channel: @testbot00X00.\n\n"
-        "Click the button below to visit the frontend and explore more!"
+        "Your data will be sent to the channel: "
+        f"{'[Channel](' + @testbot00X00 + ')'}"
     )
     frontend_url = "https://home-of-projects-mini-app.vercel.app/"
     keyboard = [
-        [InlineKeyboardButton("Visit Frontend 🌐", web_app=WebAppInfo(url=frontend_url))]
+        [InlineKeyboardButton("Upload Project🌐", web_app=WebAppInfo(url=frontend_url))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup)
@@ -111,10 +111,9 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
 
         # Check if there's an image to send
         if files and len(files) > 0:
-            # Assume the first file is a base64 encoded image
-            image_base64 = files[0]
-            image_data = base64.b64decode(image_base64.split(",")[1])
-            image_bytes = BytesIO(image_data)
+            # Assume the first file is an uploaded image
+            image_file = files[0]
+            image_bytes = BytesIO(await image_file.read())
             message = await bot.send_photo(
                 chat_id=channel_id,
                 photo=image_bytes,
