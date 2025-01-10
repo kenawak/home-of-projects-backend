@@ -2,3 +2,6 @@ fastapi
 python-telegram-bot==20.6
 python-dotenv
 uvicorn
+base64
+io
+typing
