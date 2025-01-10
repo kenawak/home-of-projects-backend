@@ -116,18 +116,29 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
         # Check if there's an image to send
-        if files and len(files) > 0:
+          if files and len(files) > 0:
+            logging.info("Image file found in the submission.")
             # Assume the first file is an uploaded image
             image_file = files[0]
-            image_bytes = BytesIO(await image_file.read())
-            message = await bot.send_photo(
-                chat_id=channel_id,
-                photo=image_bytes,
-                caption=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
-            )
+            image_bytes = await image_file.read()
+            image_path = f"images/{image_file.filename}"
+            
+            # Save the image to a folder
+            with open(image_path, "wb") as f:
+                f.write(image_bytes)
+            logging.info(f"Image saved to {image_path}")
+
+            # Send the saved image file
+            with open(image_path, "rb") as f:
+                message = await bot.send_photo(
+                    chat_id=channel_id,
+                    photo=f,
+                    caption=message_text,
+                    parse_mode="Markdown",
+                    reply_markup=reply_markup,
+                )
         else:
+            logging.info("No image file found in the submission.")
             # Send the message without an image
             message = await bot.send_message(
                 chat_id=channel_id,
