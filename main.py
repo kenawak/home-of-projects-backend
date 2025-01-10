@@ -48,6 +48,9 @@ app.add_middleware(
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    user_link = f"tg://user?id={user.id}"
+    user_data[user.id] = user_link
     description = (
     "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
     "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
@@ -98,13 +101,18 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
 
+        # Prepend the appropriate URLs to the usernames
+        linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile}" if linkedin_profile else None
+        twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
+
+
         # Construct the message text with formatting
         message_text = (
             f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
-            f"{'|[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}"
-            f"{'|[Twitter](' + twitter_account + ')' if twitter_account else ''}"
+            f"{'[LinkedIn ](' + linkedin_url + ')' if linkedin_profile else ''}"
+            f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
 
         # Build Inline Keyboard Buttons for available links
@@ -116,7 +124,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
         # Check if there's an image to send
-          if files and len(files) > 0:
+        if files and len(files) > 0:
             logging.info("Image file found in the submission.")
             # Assume the first file is an uploaded image
             image_file = files[0]
@@ -198,8 +206,8 @@ async def read_root():
 @app.post("/data")
 async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
     data = await request.json()
-    
-    await handle_data(data, files)
+    info = info.append(data)
+    await handle_data(info, files)
     return {"status": "success", "data": data}
 
 # Function to run FastAPI
