@@ -36,7 +36,9 @@ app = FastAPI()
 frontend_url = os.getenv('FRONTEND_URL')
 if not frontend_url:
     raise ValueError("No FRONTEND_URL provided. Please set the FRONTEND_URL environment variable.")
-origins = frontend_url.split(',')
+
+# Split and remove any trailing slashes
+origins = [url.rstrip('/') for url in frontend_url.split(',')]
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,7 +47,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
