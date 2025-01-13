@@ -68,7 +68,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("Upload Project🌐", web_app=WebAppInfo(url=frontend_url))]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup, parse_mode="Markdown")
+    image_path = "image.png"  # Path to the image file
+    with open(image_path, 'rb') as image_file:
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_file, caption=description, reply_markup=reply_markup, parse_mode="Markdown")
     
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
