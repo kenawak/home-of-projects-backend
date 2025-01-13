@@ -101,7 +101,6 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         live_link = data.get("liveLink")
 
         # Prepend the appropriate URLs to the usernames
-        linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile}" if linkedin_profile else None
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
         # Construct the message text with formatting
@@ -109,10 +108,10 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
-            f"{'[LinkedIn ](' + linkedin_url + ')' if linkedin_profile else ''}"
+            f"{'[LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
-
+        
         # Build Inline Keyboard Buttons for available links
         buttons = []
         if github_link:
