@@ -50,6 +50,7 @@ app.add_middleware(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_link = f"tg://user?id={user.id}"
+    Image = "image.png"
     description = (
     "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
     "Welcome to the [Home of Projects](https://t.me/homeofprojects) 🌟—where your projects come alive!\n"
