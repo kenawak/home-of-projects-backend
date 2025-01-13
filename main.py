@@ -52,15 +52,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_link = f"tg://user?id={user.id}"
     description = (
     "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
-    "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
-    "This is not just another tech channel—it's where your projects come alive and thrive! 💡\n\n"
+    "Welcome to the [Home of Projects](https://t.me/testbot00X00) 🌟—where your projects come alive!\n"
+    "✨ Why Join?\n\n"
     "✨ **What’s in it for you?**\n"
-    "- 🗣️ **Feedback that matters**: Get invaluable insights and feedback from our vibrant tech community.\n"
-    "- 🌍 **Global Reach**: Share your projects with a broader audience.\n"
-    "- 🔄 **Connect & Collaborate**: Network with like-minded innovators.\n\n"
-    "💻 Use our mini-app to seamlessly showcase your projects and broadcast them on this platform. No matter if it's a code snippet or a masterpiece—it's your story to share! 📖\n\n"
-    "🎯 Ready to start? Post your projects and see them shine in the spotlight.\n"
-    "[Projects by the community--](https://t.me/testbot00X00) 🌐"
+    "- 🗣️ **Valuable Feedback**: Gain insights from a vibrant tech community.\n"
+    "- 🌍 **Community Exposure**: Share your work with the community.\n"
+    "- 🔄 **Connect & Collaborate**: Connect with like-minded innovators\n\n"
+    "💻 Use our mini-app to showcase your projects—whether it’s a simple snippet or a full masterpiece, your story matters! 📖\n\n"
+    "🎯 Ready to Shine? Post your project and take center stage today!\n"
+    "[🌐Explore Projects by the community](https://t.me/testbot00X00)"
 )
 
     frontend_url = "https://home-of-projects-mini-app.vercel.app/"
