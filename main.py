@@ -21,6 +21,8 @@ load_dotenv()
 # Replace with your actual Telegram Bot Token
 TOKEN = os.getenv("TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+if not WEBHOOK_URL:
+    raise ValueError("No WEBHOOK_URL provided. Please set the WEBHOOK_URL environment variable.")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
@@ -33,20 +35,20 @@ application = ApplicationBuilder().token(TOKEN).build()
 app = FastAPI()
 
 # Add CORS middleware
-frontend_url = os.getenv('FRONTEND_URL')
+frontend_url = os.getenv("FRONTEND_URL")
+
 if not frontend_url:
     raise ValueError("No FRONTEND_URL provided. Please set the FRONTEND_URL environment variable.")
-
-# Split and remove any trailing slashes
-origins = [url.rstrip('/') for url in frontend_url.split(',')]
+origins = frontend_url.split(',')
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
