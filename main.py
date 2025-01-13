@@ -50,7 +50,6 @@ app.add_middleware(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_link = f"tg://user?id={user.id}"
-    Image = "image.png"
     description = (
     "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
     "Welcome to the [Home of Projects](https://t.me/homeofprojects) 🌟—where your projects come alive!\n"
@@ -71,7 +70,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     image_path = "image.png"  # Path to the image file
     with open(image_path, 'rb') as image_file:
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_file, caption=description, reply_markup=reply_markup, parse_mode="Markdown")
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_file, text=description, reply_markup=reply_markup, parse_mode="Markdown")
+    # await context.bot.send_message(chat_id=update.effective_chat.id, photo= text=description, reply_markup=reply_markup, parse_mode="Markdown")
     
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
