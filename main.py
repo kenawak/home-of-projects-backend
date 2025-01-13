@@ -52,7 +52,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_link = f"tg://user?id={user.id}"
     description = (
     "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
-    "Welcome to the [Home of Projects](https://t.me/testbot00X00) 🌟—where your projects come alive!\n"
+    "Welcome to the [Home of Projects](https://t.me/homeofprojects) 🌟—where your projects come alive!\n"
     "✨ Why Join?\n\n"
     "✨ **What’s in it for you?**\n"
     "- 🗣️ **Valuable Feedback**: Gain insights from a vibrant tech community.\n"
@@ -60,7 +60,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "- 🔄 **Connect & Collaborate**: Connect with like-minded innovators\n\n"
     "💻 Use our mini-app to showcase your projects—whether it’s a simple snippet or a full masterpiece, your story matters! 📖\n\n"
     "🎯 Ready to Shine? Post your project and take center stage today!\n"
-    "[🌐Explore Projects by the community](https://t.me/testbot00X00)"
+    "[🌐Explore Projects by the community](https://t.me/homeofprojects)"
 )
 
     frontend_url = "https://home-of-projects-mini-app.vercel.app/"
