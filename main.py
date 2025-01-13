@@ -33,7 +33,10 @@ application = ApplicationBuilder().token(TOKEN).build()
 app = FastAPI()
 
 # Add CORS middleware
-origins = os.getenv('FRONTEND_URL').split(',')
+frontend_url = os.getenv('FRONTEND_URL')
+if not frontend_url:
+    raise ValueError("No FRONTEND_URL provided. Please set the FRONTEND_URL environment variable.")
+origins = frontend_url.split(',')
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,9 +55,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
     "This is not just another tech channel—it's where your projects come alive and thrive! 💡\n\n"
     "✨ **What’s in it for you?**\n"
-    "- 🗣️ **Feedback that matters**: Get invaluable insights and feedback from our vibrant tech community.\n"
-    "- 🌍 **Global Reach**: Share your projects with a broader audience.\n"
-    "- 🔄 **Connect & Collaborate**: Network with like-minded innovators.\n\n"
     "💻 Use our mini-app to seamlessly showcase your projects and broadcast them on this platform. No matter if it's a code snippet or a masterpiece—it's your story to share! 📖\n\n"
     "🎯 Ready to start? Post your projects and see them shine in the spotlight.\n"
     "[Projects by the community--](https://t.me/testbot00X00) 🌐"
