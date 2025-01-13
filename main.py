@@ -123,10 +123,10 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
 
         # Check if there's an image to send
         if files and len(files) > 0:
-            logging.info("Image file found in the submission.")
-            # Assume the first file is an uploaded image
-            image_file = files[0]
-            image_bytes = await image_file.read()
+            logging.info("Base64 image file found in the submission.")
+            # Decode the base64 string
+            base64_data = files[0].split(",")[1]  # Remove the data URI prefix
+            image_bytes = base64.b64decode(base64_data)
 
             # Send the image file directly
             message = await bot.send_photo(
@@ -137,7 +137,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                 reply_markup=reply_markup,
             )
         else:
-            logging.info("No image file found in the submission.")
+            logging.info("No base64 image file found in the submission.")
             # Send the message without an image
             message = await bot.send_message(
                 chat_id=channel_id,
@@ -152,7 +152,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
         return {"status": "error", "message": str(e)}
-
+    
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
@@ -195,11 +195,21 @@ async def read_root():
 
 # FastAPI endpoint to receive data
 @app.post("/data")
-async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
-    data = await request.json()
-    await handle_data(data, files)
-    return {"status": "success", "data": data}
+async def receive_data(request: Request):
+    """
+    Endpoint to handle data from the frontend.
+    """
+    try:
+        # Extract JSON data from the request
+        data = await request.json()
 
+        # Check for base64-encoded file in the "files" field
+        files = data.get("files", [])
+        await handle_data(data, files)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        logging.error(f"Error processing request: {e}")
+        return {"status": "error", "message": str(e)}
 # Function to run FastAPI
 async def run_fastapi():
     port = int(os.getenv("PORT", 8000))
