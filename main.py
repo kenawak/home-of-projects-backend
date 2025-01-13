@@ -32,6 +32,17 @@ application = ApplicationBuilder().token(TOKEN).build()
 # Initialize FastAPI
 app = FastAPI()
 
+# Add CORS middleware
+origins = os.getenv('FRONTEND_URL').split(',')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
