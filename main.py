@@ -20,13 +20,11 @@ logging.basicConfig(
 load_dotenv()
 # Replace with your actual Telegram Bot Token
 TOKEN = os.getenv("TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
-if not WEBHOOK_URL:
-    raise ValueError("No WEBHOOK_URL provided. Please set the WEBHOOK_URL environment variable.")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
 TELEGRAM_CHANNEL_ID = "@testbot00X00"
+WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
 application = ApplicationBuilder().token(TOKEN).build()
@@ -35,11 +33,11 @@ application = ApplicationBuilder().token(TOKEN).build()
 app = FastAPI()
 
 # Add CORS middleware
-frontend_url = os.getenv("FRONTEND_URL")
-
-if not frontend_url:
-    raise ValueError("No FRONTEND_URL provided. Please set the FRONTEND_URL environment variable.")
-origins = frontend_url.split(',')
+origins = [
+    "https://home-of-projects-mini-app.vercel.app",
+    "https://api.telegram.org",
+    "http://localhost:3000/"
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,7 +47,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_link = f"tg://user?id={user.id}"
@@ -58,6 +55,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
     "This is not just another tech channel—it's where your projects come alive and thrive! 💡\n\n"
     "✨ **What’s in it for you?**\n"
+    "- 🗣️ **Feedback that matters**: Get invaluable insights and feedback from our vibrant tech community.\n"
+    "- 🌍 **Global Reach**: Share your projects with a broader audience.\n"
+    "- 🔄 **Connect & Collaborate**: Network with like-minded innovators.\n\n"
     "💻 Use our mini-app to seamlessly showcase your projects and broadcast them on this platform. No matter if it's a code snippet or a masterpiece—it's your story to share! 📖\n\n"
     "🎯 Ready to start? Post your projects and see them shine in the spotlight.\n"
     "[Projects by the community--](https://t.me/testbot00X00) 🌐"
@@ -101,6 +101,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         live_link = data.get("liveLink")
 
         # Prepend the appropriate URLs to the usernames
+        linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile}" if linkedin_profile else None
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
         # Construct the message text with formatting
@@ -108,10 +109,10 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
-            f"{'[LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
+            f"{'[LinkedIn ](' + linkedin_url + ')' if linkedin_profile else ''}"
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
-        
+
         # Build Inline Keyboard Buttons for available links
         buttons = []
         if github_link:
@@ -122,10 +123,10 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
 
         # Check if there's an image to send
         if files and len(files) > 0:
-            logging.info("Base64 image file found in the submission.")
-            # Decode the base64 string
-            base64_data = files[0].split(",")[1]  # Remove the data URI prefix
-            image_bytes = base64.b64decode(base64_data)
+            logging.info("Image file found in the submission.")
+            # Assume the first file is an uploaded image
+            image_file = files[0]
+            image_bytes = await image_file.read()
 
             # Send the image file directly
             message = await bot.send_photo(
@@ -136,7 +137,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                 reply_markup=reply_markup,
             )
         else:
-            logging.info("No base64 image file found in the submission.")
+            logging.info("No image file found in the submission.")
             # Send the message without an image
             message = await bot.send_message(
                 chat_id=channel_id,
@@ -151,7 +152,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
         return {"status": "error", "message": str(e)}
-    
+
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
@@ -194,21 +195,11 @@ async def read_root():
 
 # FastAPI endpoint to receive data
 @app.post("/data")
-async def receive_data(request: Request):
-    """
-    Endpoint to handle data from the frontend.
-    """
-    try:
-        # Extract JSON data from the request
-        data = await request.json()
+async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
+    data = await request.json()
+    await handle_data(data, files)
+    return {"status": "success", "data": data}
 
-        # Check for base64-encoded file in the "files" field
-        files = data.get("files", [])
-        await handle_data(data, files)
-        return {"status": "success", "data": data}
-    except Exception as e:
-        logging.error(f"Error processing request: {e}")
-        return {"status": "error", "message": str(e)}
 # Function to run FastAPI
 async def run_fastapi():
     port = int(os.getenv("PORT", 8000))
