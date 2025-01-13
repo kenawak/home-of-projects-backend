@@ -3,10 +3,13 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import Optional
-from fastapi import FastAPI, Request
-from telegram import Update
+from fastapi import FastAPI, Request, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
+import base64
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(
@@ -29,11 +32,44 @@ application = ApplicationBuilder().token(TOKEN).build()
 # Initialize FastAPI
 app = FastAPI()
 
-# Define handlers for different Telegram events
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    frontend_url = "https://your-frontend-url.com"  # Replace with your actual frontend URL
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"I'm a bot, please talk to me! Use this URL: {frontend_url}")
+# Add CORS middleware
+origins = [
+    "https://home-of-projects-mini-app.vercel.app",
+    "https://api.telegram.org",
+    "http://localhost:3000/"
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    user_link = f"tg://user?id={user.id}"
+    description = (
+    "🚀 **Turn Your Ideas into a Spotlight!** 🚀\n\n"
+    "Welcome to the [Home of Projects Channel](https://t.me/testbot00X00) 🌟\n"
+    "This is not just another tech channel—it's where your projects come alive and thrive! 💡\n\n"
+    "✨ **What’s in it for you?**\n"
+    "- 🗣️ **Feedback that matters**: Get invaluable insights and feedback from our vibrant tech community.\n"
+    "- 🌍 **Global Reach**: Share your projects with a broader audience.\n"
+    "- 🔄 **Connect & Collaborate**: Network with like-minded innovators.\n\n"
+    "💻 Use our mini-app to seamlessly showcase your projects and broadcast them on this platform. No matter if it's a code snippet or a masterpiece—it's your story to share! 📖\n\n"
+    "🎯 Ready to start? Post your projects and see them shine in the spotlight.\n"
+    "[Projects by the community--](https://t.me/testbot00X00) 🌐"
+)
+
+    frontend_url = "https://home-of-projects-mini-app.vercel.app/"
+    keyboard = [
+        [InlineKeyboardButton("Upload Project🌐", web_app=WebAppInfo(url=frontend_url))]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=description, reply_markup=reply_markup, parse_mode="Markdown")
+    
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
 
@@ -42,10 +78,80 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # Function to handle received data
-async def handle_data(data):
-    context = application.bot
-    channel_id = TELEGRAM_CHANNEL_ID
-    await context.send_message(chat_id=channel_id, text=f"Received data: {data}")
+async def handle_data(data, files: Optional[list[UploadFile]] = None):
+    """
+    Handle submitted form data and send a formatted message to the Telegram channel.
+    
+    Args:
+        data (dict): The form data submitted from the frontend.
+        files (list[UploadFile], optional): List of uploaded files.
+    """
+    try:
+        # Access the bot and channel ID
+        bot = application.bot
+        channel_id = TELEGRAM_CHANNEL_ID
+
+        # Extract data from the form submission
+        project_name = data.get("projectName", "Unnamed Project")
+        project_description = data.get("projectDescription", "No description provided.")
+        telegram_link = data.get("telegramLink")
+        linkedin_profile = data.get("linkedinProfile")
+        twitter_account = data.get("twitterAccount")
+        github_link = data.get("githubLink")
+        live_link = data.get("liveLink")
+
+        # Prepend the appropriate URLs to the usernames
+        linkedin_url = f"https://www.linkedin.com/in/{linkedin_profile}" if linkedin_profile else None
+        twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
+
+        # Construct the message text with formatting
+        message_text = (
+            f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
+            f"{project_description}\n\n"
+            f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
+            f"{'[LinkedIn ](' + linkedin_url + ')' if linkedin_profile else ''}"
+            f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
+        )
+
+        # Build Inline Keyboard Buttons for available links
+        buttons = []
+        if github_link:
+            buttons.append(InlineKeyboardButton("GitHub", url=github_link))
+        if live_link:
+            buttons.append(InlineKeyboardButton("Live Project", url=live_link))
+        reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
+
+        # Check if there's an image to send
+        if files and len(files) > 0:
+            logging.info("Image file found in the submission.")
+            # Assume the first file is an uploaded image
+            image_file = files[0]
+            image_bytes = await image_file.read()
+
+            # Send the image file directly
+            message = await bot.send_photo(
+                chat_id=channel_id,
+                photo=BytesIO(image_bytes),
+                caption=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+            )
+        else:
+            logging.info("No image file found in the submission.")
+            # Send the message without an image
+            message = await bot.send_message(
+                chat_id=channel_id,
+                text=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+            )
+
+        logging.info(f"Message sent successfully: {message.message_id}")
+        return {"status": "success", "message_id": message.message_id}
+
+    except Exception as e:
+        logging.error(f"Error sending data to the channel: {e}")
+        return {"status": "error", "message": str(e)}
 
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
@@ -89,9 +195,9 @@ async def read_root():
 
 # FastAPI endpoint to receive data
 @app.post("/data")
-async def receive_data(request: Request):
+async def receive_data(request: Request, files: Optional[list[UploadFile]] = File(None)):
     data = await request.json()
-    await handle_data(data)
+    await handle_data(data, files)
     return {"status": "success", "data": data}
 
 # Function to run FastAPI
