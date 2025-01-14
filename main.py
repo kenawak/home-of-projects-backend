@@ -101,8 +101,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         twitter_account = data.get("twitterAccount")
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
-        username = data.get("telegramUsername")
-        logging.info(f"info logged out {username}")
+        username = data.get("telegramUsername") 
         # Prepend the appropriate URLs to the usernames
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
@@ -110,7 +109,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         message_text = (
             f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
             f"{project_description}\n\n"
-            f"Submitted by: {'@' + username if username else 'Anonymous'}\n"
+            f"Submitted by: {'@' + username }\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''} "
             f"{'[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''} "
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
