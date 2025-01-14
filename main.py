@@ -102,6 +102,8 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
         username = data.get("telegramUsername") 
+        if username and username.startswith("@"):
+            username = username[1:] 
         # Prepend the appropriate URLs to the usernames
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
         tg_link = f"http://t.me/{username}"
