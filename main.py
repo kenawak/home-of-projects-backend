@@ -110,7 +110,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
             f"{project_description}\n\n"
             f"{'[Telegram](' + tg_link + ')' if username else ''}"
-            f"{'[LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
+            f"{' | [LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
         
