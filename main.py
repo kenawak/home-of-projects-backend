@@ -102,7 +102,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
         username = data.get("telegramUsername")
-        logging.info("info logged out", username)
+        logging.info(f"info logged out {username}")
         # Prepend the appropriate URLs to the usernames
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
