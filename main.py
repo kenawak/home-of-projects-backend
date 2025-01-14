@@ -204,7 +204,7 @@ async def receive_data(request: Request):
     """
     Endpoint to handle data from the frontend.
     """
-    loggin.info("Data endpoint called")
+    logging.info("Data endpoint called")
     try:
         # Extract JSON data from the request
         data = await request.json()
