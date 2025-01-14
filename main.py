@@ -107,14 +107,15 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
         # Construct the message text with formatting
-        # Construct the message text with formatting
         message_text = (
             f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
             f"{project_description}\n\n"
             f"Submitted by: {username if username else 'Anonymous'}\n"
-            f"{'[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''} "
-            f"{'[Twitter](' + twitter_url + ')' if twitter_account else ''}"
+            f"{('[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else '')}"
+            f"{' | ' if linkedin_profile and twitter_account else ''}"
+            f"{('[Twitter](' + twitter_url + ')' if twitter_account else '')}"
         )
+
 
         
         # Build Inline Keyboard Buttons for available links
