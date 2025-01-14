@@ -111,7 +111,8 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             f"{project_description}\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
             f"{'[LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
-            f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
+            f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''} \\n"
+            f"{username}"
         )
         
         # Build Inline Keyboard Buttons for available links
