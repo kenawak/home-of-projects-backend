@@ -80,13 +80,14 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
 # Function to handle received data
-async def handle_data(data, files: Optional[list[UploadFile]] = None):
+async def handle_data(data, files: Optional[list[UploadFile]] = None, update: Optional[Update] = None):
     """
     Handle submitted form data and send a formatted message to the Telegram channel.
     
     Args:
         data (dict): The form data submitted from the frontend.
         files (list[UploadFile], optional): List of uploaded files.
+        update (Update, optional): Telegram update object to track sender details.
     """
     try:
         # Access the bot and channel ID
@@ -105,16 +106,22 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         # Prepend the appropriate URLs to the usernames
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
 
+        # Extract username or ID from the Update object (if provided)
+        if update and update.effective_user:
+            user_name = f"@{update.effective_user.username}" if update.effective_user.username else "Anonymous"
+        else:
+            user_name = "Anonymous"
+
         # Construct the message text with formatting
         message_text = (
-    f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
-    f"{project_description}\n\n"
-    f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''} "
-    f"{'[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''} "
-    f"{'[Twitter](' + twitter_url + ')' if twitter_account else ''}"
-)
+            f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
+            f"{project_description}\n\n"
+            f"Submitted by: {user_name}\n\n"  # Add username to the message
+            f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''} "
+            f"{'[LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''} "
+            f"{'[Twitter](' + twitter_url + ')' if twitter_account else ''}"
+        )
 
-        
         # Build Inline Keyboard Buttons for available links
         buttons = []
         if github_link:
@@ -126,7 +133,6 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         # Check if there's an image to send
         if files and len(files) > 0:
             logging.info("Base64 image file found in the submission.")
-            # Decode the base64 string
             base64_data = files[0].split(",")[1]  # Remove the data URI prefix
             image_bytes = base64.b64decode(base64_data)
 
