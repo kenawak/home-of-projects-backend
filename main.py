@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputMedia, InputFile, InputMediaPhoto, InputMediaVideo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 import base64
@@ -101,16 +101,18 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         twitter_account = data.get("twitterAccount")
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
-
+        username = data.get("telegramUsername") 
+        if username and username.startswith("@"):
+            username = username[1:] 
         # Prepend the appropriate URLs to the usernames
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
-
+        tg_link = f"http://t.me/{username}"
         # Construct the message text with formatting
         message_text = (
-            f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
+            f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
             f"{project_description}\n\n"
-            f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
-            f"{'[LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
+            f"{'[Telegram](' + tg_link + ')' if username else ''}"
+            f"{' | [LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
         
@@ -121,7 +123,6 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         if live_link:
             buttons.append(InlineKeyboardButton("Live Project", url=live_link))
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
-
 
         if files and len(files) > 0:
             media_group = []
