@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputFile, InputMediaPhoto, InputMediaVideo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputMedia, InputFile, InputMediaPhoto, InputMediaVideo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 import base64
@@ -140,8 +140,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
 
                 # Set the caption on the first media item
                 if i == 0:
-                    media.caption = message_text
-                    media.parse_mode = "Markdown"
+                    media = InputMedia(media=media, caption=message_text, parse_mode="Markdown")
 
                 media_group.append(media)
 
