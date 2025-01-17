@@ -23,7 +23,7 @@ TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
-TELEGRAM_CHANNEL_ID = "@homeofprojects"
+TELEGRAM_CHANNEL_ID = "@testbot00X00"
 WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
@@ -101,18 +101,16 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         twitter_account = data.get("twitterAccount")
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
-        username = data.get("telegramUsername") 
-        if username and username.startswith("@"):
-            username = username[1:] 
+
         # Prepend the appropriate URLs to the usernames
         twitter_url = f"https://twitter.com/{twitter_account}" if twitter_account else None
-        tg_link = f"http://t.me/{username}"
+
         # Construct the message text with formatting
         message_text = (
-            f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
+            f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
-            f"{'[Telegram](' + tg_link + ')' if username else ''}"
-            f"{' | [LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
+            f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
+            f"{'[LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
         
@@ -124,25 +122,42 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             buttons.append(InlineKeyboardButton("Live Project", url=live_link))
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
-        # Check if there's an image to send
+        # Check if there are files to send
         if files and len(files) > 0:
-            logging.info("Base64 image file found in the submission.")
-            # Decode the base64 string
-            base64_data = files[0].split(",")[1]  # Remove the data URI prefix
-            image_bytes = base64.b64decode(base64_data)
+            media_group = []
+            for file in files:
+                base64_data = file.split(",")[1]  # Remove the data URI prefix
+                file_bytes = base64.b64decode(base64_data)
+                file_extension = file.split(";")[0].split("/")[1]
 
-            # Send the image file directly
-            message = await bot.send_photo(
-                chat_id=channel_id,
-                photo=BytesIO(image_bytes),
-                caption=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
-            )
+                if file_extension in ["jpg", "jpeg", "png"]:
+                    media_group.append({
+                        "type": "photo",
+                        "media": BytesIO(file_bytes)
+                    })
+                elif file_extension in ["mp4", "mov"]:
+                    media_group.append({
+                        "type": "video",
+                        "media": BytesIO(file_bytes)
+                    })
+
+            if media_group:
+                await bot.send_media_group(
+                    chat_id=channel_id,
+                    media=media_group,
+                    caption=message_text,
+                    parse_mode="Markdown",
+                    reply_markup=reply_markup,
+                )
+            else:
+                await bot.send_message(
+                    chat_id=channel_id,
+                    text=message_text,
+                    parse_mode="Markdown",
+                    reply_markup=reply_markup,
+                )
         else:
-            logging.info("No base64 image file found in the submission.")
-            # Send the message without an image
-            message = await bot.send_message(
+            await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
                 parse_mode="Markdown",
@@ -202,7 +217,6 @@ async def receive_data(request: Request):
     """
     Endpoint to handle data from the frontend.
     """
-    logging.info("Data endpoint called")
     try:
         # Extract JSON data from the request
         data = await request.json()
