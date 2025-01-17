@@ -107,6 +107,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
 
         # Construct the message text with formatting
         message_text = (
+            f"Test Project"
             f"{'['+ project_name +']('+ github_link +')' if github_link else 'https://github.com/'}\n"
             f"{project_description}\n\n"
             f"{'[Telegram](' + telegram_link + ')' if telegram_link else ''}"
@@ -126,7 +127,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         if files and len(files) > 0:
             media_group = []
             for file in files:
-                base64_data = file.split(",")[1]  # Remove the data URI prefix
+                base64_data = file.split(",")[1]
                 file_bytes = base64.b64decode(base64_data)
                 file_extension = file.split(";")[0].split("/")[1]
 
@@ -141,8 +142,9 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                         "media": BytesIO(file_bytes)
                     })
 
+            logging.info("Sending message with media groups...")
             if media_group:
-                await bot.send_media_group(
+                message = await bot.send_media_group(
                     chat_id=channel_id,
                     media=media_group,
                     caption=message_text,
@@ -157,7 +159,8 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                     reply_markup=reply_markup,
                 )
         else:
-            await bot.send_message(
+            logging.info("No base64 image/video file found in the submission.")
+            message = await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
                 parse_mode="Markdown",
