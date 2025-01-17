@@ -23,7 +23,7 @@ TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
-TELEGRAM_CHANNEL_ID = "@homeofprojects"
+TELEGRAM_CHANNEL_ID = "@testbot00X00"
 WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
@@ -124,36 +124,34 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
         # Check if there are files to send
-        if files and len(files) > 0:
+        # if files and len(files) > 0:
+        media_photo = []
+        media_video = []
+        for obj in files:
             file_bytes = None
             file_extension = None
 
-            # Only use the first file
-            base64_data = files[0].split(",")[1]
+            base64_data = obj[0].split(",")[1]
             file_bytes = base64.b64decode(base64_data)
-            file_extension = files[0].split(";")[0].split("/")[1]
+            file_extension = obj[0].split(";")[0].split("/")[1]
 
             # Prepare media to send
             if file_extension in ["jpg", "jpeg", "png"]:
                 photo = InputFile(BytesIO(file_bytes), filename=f"file.{file_extension}")
-                await bot.send_photo(
-                    chat_id=channel_id,
-                    photo=photo,
-                    caption=message_text,
-                    parse_mode="Markdown",
-                    reply_markup=reply_markup,
-                )
+                media_photo.append(photo)
             elif file_extension in ["mp4", "mov"]:
                 video = InputFile(BytesIO(file_bytes), filename=f"file.{file_extension}")
-                await bot.send_video(
-                    chat_id=channel_id,
-                    video=video,
-                    caption=message_text,
-                    parse_mode="Markdown",
-                    reply_markup=reply_markup,
-                )
+                media_video.append(video)
             else:
                 raise ValueError("Unsupported file format")
+            await bot.send_video(
+                chat_id=channel_id,
+                video=media_video,
+                photo=media_photo,
+                caption=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+                )
         else:
             # No files to send, just send the text message
             await bot.send_message(
