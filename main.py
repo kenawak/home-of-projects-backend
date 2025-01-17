@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputFile
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputFile, InputMediaPhoto, InputMediaVideo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 import base64
@@ -124,36 +124,34 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
         # Check if there are files to send
-        # if files and len(files) > 0:
-        media_photo = []
-        media_video = []
-        for obj in files:
-            file_bytes = None
-            file_extension = None
+        if files and len(files) > 0:
+            media_group = []
+            for i, file in enumerate(files):
+                base64_data = file.split(",")[1]
+                file_bytes = base64.b64decode(base64_data)
+                file_extension = file.split(";")[0].split("/")[1]
 
-            base64_data = obj[0].split(",")[1]
-            file_bytes = base64.b64decode(base64_data)
-            file_extension = obj[0].split(";")[0].split("/")[1]
+                if file_extension in ["jpg", "jpeg", "png"]:
+                    media = InputMediaPhoto(BytesIO(file_bytes))
+                elif file_extension in ["mp4", "mov"]:
+                    media = InputMediaVideo(BytesIO(file_bytes))
+                else:
+                    continue
 
-            # Prepare media to send
-            if file_extension in ["jpg", "jpeg", "png"]:
-                photo = InputFile(BytesIO(file_bytes), filename=f"file.{file_extension}")
-                media_photo.append(photo)
-            elif file_extension in ["mp4", "mov"]:
-                video = InputFile(BytesIO(file_bytes), filename=f"file.{file_extension}")
-                media_video.append(video)
-            else:
-                raise ValueError("Unsupported file format")
-            await bot.send_video(
+                # Set the caption on the first media item
+                if i == 0:
+                    media.caption = message_text
+                    media.parse_mode = "Markdown"
+
+                media_group.append(media)
+
+            logging.info("Sending media group...")
+            await bot.send_media_group(
                 chat_id=channel_id,
-                video=media_video,
-                photo=media_photo,
-                caption=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
-                )
+                media=media_group
+            )
         else:
-            # No files to send, just send the text message
+            logging.info("No base64 image/video file found in the submission.")
             await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
