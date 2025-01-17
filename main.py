@@ -23,7 +23,7 @@ TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
-TELEGRAM_CHANNEL_ID = "@testbot00X00"
+TELEGRAM_CHANNEL_ID = "@homeofprojects"
 WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
