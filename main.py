@@ -142,33 +142,31 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                         "media": BytesIO(file_bytes)
                     })
 
-            logging.info("Sending message with media groups...")
+            logging.info("Sending media group...")
             if media_group:
-                message = await bot.send_media_group(
+                await bot.send_media_group(
                     chat_id=channel_id,
-                    media=media_group,
-                    caption=message_text,
-                    parse_mode="Markdown",
-                    reply_markup=reply_markup,
+                    media=media_group
                 )
-            else:
-                await bot.send_message(
-                    chat_id=channel_id,
-                    text=message_text,
-                    parse_mode="Markdown",
-                    reply_markup=reply_markup,
-                )
+            
+            # Send the message with the caption and reply markup separately
+            await bot.send_message(
+                chat_id=channel_id,
+                text=message_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup,
+            )
         else:
             logging.info("No base64 image/video file found in the submission.")
-            message = await bot.send_message(
+            await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
                 parse_mode="Markdown",
                 reply_markup=reply_markup,
             )
 
-        logging.info(f"Message sent successfully: {message.message_id}")
-        return {"status": "success", "message_id": message.message_id}
+        logging.info(f"Message sent successfully")
+        return {"status": "success", "message": "Message sent successfully"}
 
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
