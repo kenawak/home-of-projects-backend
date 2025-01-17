@@ -123,26 +123,27 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             buttons.append(InlineKeyboardButton("Live Project", url=live_link))
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
-        # Check if there are files to send
         if files and len(files) > 0:
             media_group = []
-            for i, file in enumerate(files):
+            for file in files:
                 base64_data = file.split(",")[1]
                 file_bytes = base64.b64decode(base64_data)
                 file_extension = file.split(";")[0].split("/")[1]
 
+                # Determine the media type
                 if file_extension in ["jpg", "jpeg", "png"]:
                     media = InputMediaPhoto(BytesIO(file_bytes))
                 elif file_extension in ["mp4", "mov"]:
                     media = InputMediaVideo(BytesIO(file_bytes))
                 else:
-                    continue
-
-                # Set the caption on the first media item
-                if i == 0:
-                    media = InputMedia(media=media, caption=message_text, parse_mode="Markdown")
+                    continue  # Skip unsupported file types
 
                 media_group.append(media)
+
+            # Add a caption to the first media in the group
+            if media_group:
+                media_group[0].caption = message_text
+                media_group[0].parse_mode = "Markdown"
 
             logging.info("Sending media group...")
             await bot.send_media_group(
@@ -157,10 +158,6 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                 parse_mode="Markdown",
                 reply_markup=reply_markup,
             )
-
-        logging.info("Message sent successfully")
-        return {"status": "success", "message": "Message sent successfully"}
-
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
         return {"status": "error", "message": str(e)}
