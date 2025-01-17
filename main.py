@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputMediaPhoto, InputMediaVideo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 import base64
@@ -132,15 +132,9 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                 file_extension = file.split(";")[0].split("/")[1]
 
                 if file_extension in ["jpg", "jpeg", "png"]:
-                    media_group.append({
-                        "type": "photo",
-                        "media": BytesIO(file_bytes)
-                    })
+                    media_group.append(InputMediaPhoto(BytesIO(file_bytes)))
                 elif file_extension in ["mp4", "mov"]:
-                    media_group.append({
-                        "type": "video",
-                        "media": BytesIO(file_bytes)
-                    })
+                    media_group.append(InputMediaVideo(BytesIO(file_bytes)))
 
             logging.info("Sending media group...")
             if media_group:
