@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputMediaPhoto, InputMediaVideo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputFile
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 import base64
@@ -23,7 +23,7 @@ TOKEN = os.getenv("TOKEN")
 if not TOKEN:
     raise ValueError("No TOKEN provided. Please set the TOKEN environment variable.")
 
-TELEGRAM_CHANNEL_ID = "@homeofprojects"
+TELEGRAM_CHANNEL_ID = "@testbot00X00"
 WEBHOOK_URL = "https://home-of-projects-backend.onrender.com/webhook"  # Replace with your actual webhook URL
 
 # Initialize Telegram Application
@@ -125,33 +125,37 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
 
         # Check if there are files to send
         if files and len(files) > 0:
-            media_group = []
-            for file in files:
-                base64_data = file.split(",")[1]
-                file_bytes = base64.b64decode(base64_data)
-                file_extension = file.split(";")[0].split("/")[1]
+            file_bytes = None
+            file_extension = None
 
-                if file_extension in ["jpg", "jpeg", "png"]:
-                    media_group.append(InputMediaPhoto(BytesIO(file_bytes)))
-                elif file_extension in ["mp4", "mov"]:
-                    media_group.append(InputMediaVideo(BytesIO(file_bytes)))
+            # Only use the first file
+            base64_data = files[0].split(",")[1]
+            file_bytes = base64.b64decode(base64_data)
+            file_extension = files[0].split(";")[0].split("/")[1]
 
-            logging.info("Sending media group...")
-            if media_group:
-                await bot.send_media_group(
+            # Prepare media to send
+            if file_extension in ["jpg", "jpeg", "png"]:
+                photo = InputFile(BytesIO(file_bytes), filename=f"file.{file_extension}")
+                await bot.send_photo(
                     chat_id=channel_id,
-                    media=media_group
+                    photo=photo,
+                    caption=message_text,
+                    parse_mode="Markdown",
+                    reply_markup=reply_markup,
                 )
-            
-            # Send the message with the caption and reply markup separately
-            await bot.send_message(
-                chat_id=channel_id,
-                text=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
-            )
+            elif file_extension in ["mp4", "mov"]:
+                video = InputFile(BytesIO(file_bytes), filename=f"file.{file_extension}")
+                await bot.send_video(
+                    chat_id=channel_id,
+                    video=video,
+                    caption=message_text,
+                    parse_mode="Markdown",
+                    reply_markup=reply_markup,
+                )
+            else:
+                raise ValueError("Unsupported file format")
         else:
-            logging.info("No base64 image/video file found in the submission.")
+            # No files to send, just send the text message
             await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
@@ -159,7 +163,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
                 reply_markup=reply_markup,
             )
 
-        logging.info(f"Message sent successfully")
+        logging.info("Message sent successfully")
         return {"status": "success", "message": "Message sent successfully"}
 
     except Exception as e:
