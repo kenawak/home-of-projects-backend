@@ -110,19 +110,13 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         message_text = (
             f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
             f"{project_description}\n\n"
-            f"{'[Telegram](' + tg_link + ')' if username else ''}"
+            f"{'Code: [Github](' + github_link + ')'}"
+            f"{' | Site: [Link](' + live_link + ')'}"
+            f"{'[Telegram](' + tg_link + ')'}"
             f"{' | [LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
             f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
         
-        # Build Inline Keyboard Buttons for available links
-        buttons = []
-        if github_link:
-            buttons.append(InlineKeyboardButton("GitHub", url=github_link))
-        if live_link:
-            buttons.append(InlineKeyboardButton("Live Project", url=live_link))
-        reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
-
         if files and len(files) > 0:
             media_group = []
             for i, file in enumerate(files):
@@ -159,8 +153,7 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
+                parse_mode="Markdown"
             )
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
