@@ -124,38 +124,48 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             buttons.append(InlineKeyboardButton("Live Project", url=live_link))
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
-        # Check if there's an image to send
         if files and len(files) > 0:
-            logging.info("Base64 image file found in the submission.")
-            # Decode the base64 string
-            base64_data = files[0].split(",")[1]  # Remove the data URI prefix
-            image_bytes = base64.b64decode(base64_data)
+            media_group = []
+            for i, file in enumerate(files):
+                base64_data = file.split(",")[1]
+                file_bytes = base64.b64decode(base64_data)
+                file_extension = file.split(";")[0].split("/")[1]
 
-            # Send the image file directly
-            message = await bot.send_photo(
-                chat_id=channel_id,
-                photo=BytesIO(image_bytes),
-                caption=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
-            )
+                # Determine the media type
+                if file_extension in ["jpg", "jpeg", "png"]:
+                    media = InputMediaPhoto(
+                        media=BytesIO(file_bytes),
+                        caption=message_text if i == 0 else None,  # Captions can only be set for the first media..!
+                        parse_mode="Markdown" if i == 0 else None
+                    )
+                elif file_extension in ["mp4", "mov"]:
+                    media = InputMediaVideo(
+                        media=BytesIO(file_bytes),
+                        caption=message_text if i == 0 else None,  # Captions can only be set for the first media..!
+                        parse_mode="Markdown" if i == 0 else None
+                    )
+                else:
+                    continue  # Skip unsupported file types
+
+                media_group.append(media)
+
+            if media_group:
+                logging.info("Sending media group...")
+                await bot.send_media_group(
+                    chat_id=channel_id,
+                    media=media_group
+                )
         else:
-            logging.info("No base64 image file found in the submission.")
-            # Send the message without an image
-            message = await bot.send_message(
+            logging.info("No base64 image/video file found in the submission.")
+            await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
                 parse_mode="Markdown",
                 reply_markup=reply_markup,
             )
-
-        logging.info(f"Message sent successfully: {message.message_id}")
-        return {"status": "success", "message_id": message.message_id}
-
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
         return {"status": "error", "message": str(e)}
-    
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
