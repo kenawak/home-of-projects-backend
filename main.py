@@ -32,15 +32,11 @@ application = ApplicationBuilder().token(TOKEN).build()
 app = FastAPI()
 
 # Add CORS middleware
-origins = [
-    "https://home-of-projects-mini-app.vercel.app",
-    "https://api.telegram.org",
-    "http://localhost:3000/"
-]
+origins = "https://home-of-projects-mini-app.vercel.app/"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,11 +108,11 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         tg_link = f"http://t.me/{username}"
         # Construct the message text with formatting
         message_text = (
-            f"{f'[{project_name}]({project_link})'}\n"
+            f"[{project_name}]({project_link})\n"
             f"{project_description}\n\n"
-            f"[[Github]]({github_link})"
-            f"{' | [[Website]](' + live_link + ')' if live_link else ''}\n"
-            f"{'[Telegram](' + tg_link + ')' if tg_link else ''}"
+            f"{'[[Github]](' + github_link + ')' if github_link else ''}"
+            f"{' | [[Website]](' + live_link + ')' if live_link else ''}"
+            f"{' | [Telegram](' + tg_link + ')' if tg_link else ''}"
             f"{' | [LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}"
             f"{' | [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
