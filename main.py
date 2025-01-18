@@ -5,12 +5,11 @@ import logging
 from typing import Optional
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, InputMedia, InputFile, InputMediaPhoto, InputMediaVideo
 from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes
 import uvicorn
 import base64
 from io import BytesIO
-
 # Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -102,6 +101,10 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         github_link = data.get("githubLink")
         live_link = data.get("liveLink")
         username = data.get("telegramUsername") 
+        if github_link:
+            project_link = github_link
+        else:
+            project_link = live_link
         if username and username.startswith("@"):
             username = username[1:] 
         # Prepend the appropriate URLs to the usernames
@@ -109,21 +112,17 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
         tg_link = f"http://t.me/{username}"
         # Construct the message text with formatting
         message_text = (
-            f"{'[' + project_name + '](' + github_link + ')' if github_link else project_name}\n"
+            f"{f'[{project_name}]({project_link})'}\n"
             f"{project_description}\n\n"
-            f"{'[Telegram](' + tg_link + ')' if username else ''}"
-            f"{' | [LinkedIn ](' + linkedin_profile + ')' if linkedin_profile else ''}"
-            f"{'| [Twitter](' + twitter_url + ')' if twitter_account else ''}"
+            f"[[Github]]({github_link})"
+            f"{' | [[Website]](' + live_link + ')' if live_link else ''}\n"
+            f"{'[Telegram](' + tg_link + ')' if tg_link else ''}"
+            f"{' | [LinkedIn](' + linkedin_profile + ')' if linkedin_profile else ''}"
+            f"{' | [Twitter](' + twitter_url + ')' if twitter_account else ''}"
         )
-        
-        # Build Inline Keyboard Buttons for available links
-        buttons = []
-        if github_link:
-            buttons.append(InlineKeyboardButton("GitHub", url=github_link))
-        if live_link:
-            buttons.append(InlineKeyboardButton("Live Project", url=live_link))
-        reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
+
+        
         if files and len(files) > 0:
             media_group = []
             for i, file in enumerate(files):
@@ -160,12 +159,12 @@ async def handle_data(data, files: Optional[list[UploadFile]] = None):
             await bot.send_message(
                 chat_id=channel_id,
                 text=message_text,
-                parse_mode="Markdown",
-                reply_markup=reply_markup,
+                parse_mode="Markdown"
             )
     except Exception as e:
         logging.error(f"Error sending data to the channel: {e}")
         return {"status": "error", "message": str(e)}
+    
 # FastAPI endpoint for Telegram webhook
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
@@ -212,7 +211,6 @@ async def receive_data(request: Request):
     """
     Endpoint to handle data from the frontend.
     """
-    logging.info("Data endpoint called")
     try:
         # Extract JSON data from the request
         data = await request.json()
